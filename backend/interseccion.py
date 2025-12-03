@@ -40,18 +40,18 @@ class Intersection:
     def spawn_vehicle(self):
         direction = random.choice(['norte', 'sur', 'este', 'oeste'])
         spawn_pos = self.spawn.get_spawn_position(direction, self.center_cell, self.grid_size)
-        col = spawn_pos[0]
-        row = spawn_pos[1]
+        x = spawn_pos[0]
+        y = spawn_pos[1]
 
-        if self.grid[row][col] != 1:
-            vehicle = self.spawn.spawn_vehicle(spawn_pos)
+        if self.grid[y][x] != 1:
+            vehicle = self.spawn.spawn_vehicle(spawn_pos, direction)
 
             self.vehicles.append(vehicle)
 
-            print(f"vehiculo spawneado en {col, row} a las {self.current_hour}:{self.current_minute}")
-            self.grid[row][col] = 1
+            print(f"vehiculo spawneado en {y, x} hacia {direction} a las {self.current_hour}:{self.current_minute}")
+            self.grid[y][x] = 1
         else:
-            print(f"Ya hay un vehiculo en {col, row}, no fue posible aparecer otro")
+            print(f"Ya hay un vehiculo en {y, x}, no fue posible aparecer otro")
 
     # Cuenta vehículos esperando en cada dirección y los categoriza.
     def get_traffic_levels(self):
@@ -83,7 +83,7 @@ class Intersection:
 
     # Retorna el valor de la posicion señalada de la grilla
     def get_position(self, x, y):
-        return self.grid[x][y]
+        return self.grid[y][x]
 
 
     def get_waiting_vehicles_count(self):
@@ -118,7 +118,31 @@ class Intersection:
             self.spawn_counter = 0
 
         # Mover vehículos
-        #...
+        for vehiculo in self.vehicles:
+            # Tomar x e y del vehículo actual
+            x,y = vehiculo.get_position()
+
+            # Verificar que no hay un vehículo en la casilla donde se está avanzando
+            if vehiculo.get_direction() == 'norte' and y != 0:
+                y -= 1
+            elif vehiculo.get_direction() == 'sur' and y != self.grid_size - 1:
+                y += 1
+            elif vehiculo.get_direction() == 'este' and x != self.grid_size - 1:
+                x += 1
+            elif vehiculo.get_direction() == 'oeste' and x != 0:
+                x -= 1
+            else:
+                # Caso en el que el vehículo esté en una orilla de la grilla, donde no podemos comparar para x o y +-1
+                if not vehiculo.move(self.grid_size):
+                    self.vehicles.remove(vehiculo)
+                    print(f"vehículo {vehiculo} destrozado")
+            # En este caso el vehículo no está en una orilla, por lo que comparamos y avanzamos
+            if self.grid[y][x] != 1:
+                vehiculo.move(self.grid_size)
+
+
+        # Actualizar grilla
+        self.update_grid()
 
         # Actualizar semáforo
         # ...
@@ -131,6 +155,13 @@ class Intersection:
 
         return 0
 
+    def update_grid(self):
+        for i in range(self.grid_size):
+            for j in range(self.grid_size):
+                self.grid[i][j] = 0
+        for auto in self.vehicles:
+            x,y = auto.get_position()
+            self.grid[y][x] = 1
     # Para animación visual
     def update(self, dt):
         pass

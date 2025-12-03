@@ -28,13 +28,13 @@ class SpawnVehicle:
         if direction == 'norte':
             return center_cell, grid_size - 1
         elif direction == 'sur':
-            return center_cell, 0
+            return center_cell + 1, 0
         elif direction == 'este':
-            return 0, center_cell
+            return 0, center_cell + 1
         else:  # oeste
             return grid_size - 1, center_cell
 
     # Genera un nuevo vehículo
-    def spawn_vehicle(self, spawn_pos):
-        vehicle = Vehiculo(spawn_pos)
+    def spawn_vehicle(self, spawn_pos, direction):
+        vehicle = Vehiculo(spawn_pos, direction)
         return vehicle
