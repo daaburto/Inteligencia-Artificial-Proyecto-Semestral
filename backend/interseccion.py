@@ -1,5 +1,10 @@
 import random
-from semaforo import Semaforo
+
+from pygame.display import get_active
+
+from backend.semaforo import Semaforo
+from backend.vehiculo import Vehiculo
+from backend.spawn_vehiculo import SpawnVehicle
 
 class Intersection:
     """
@@ -10,48 +15,43 @@ class Intersection:
         self.grid_size = grid_size
         self.center_cell = grid_size // 2  # Casilla central de la intersección
 
+        # Crear grilla
+        self.grid = [[0 for _ in range(self.grid_size)]for _ in range(self.grid_size)]
+
+
         self.semaforo = Semaforo()
         self.vehicles = []
 
         # Configuración de generación de tráfico
         self.base_spawn_interval = 3  # Spawn cada N steps
         self.current_hour = 6  # Hora inicial simulada (6:00 AM)
+        self.current_minute = 0
 
         # Métricas
         self.total_wait_time = 0
         self.phase_changes = 0
         self.total_steps = 0
+        self.spawn_counter = 0
 
-    # Determina si es hora punta (7-9 AM o 5-8 PM)
-    def is_rush_hour(self):
-        return (7 <= self.current_hour < 9) or (17 <= self.current_hour < 20)
-
-    # Retorna el intervalo de spawn según la hora.
-    # En las horas punta genera vehículos más frecuentemente.
-    def get_spawn_interval(self):
-        if self.is_rush_hour():
-            return max(1, int(self.base_spawn_interval * 0.5))  # Spawn más rápido
-        return self.base_spawn_interval
-
-    # Retorna la posición inicial en la grilla según dirección.
-    # Los vehículos spawean en el borde de la grilla.
-    def get_spawn_position(self, direction):
-        if direction == 'norte':
-            return self.center_cell, self.grid_size - 1
-        elif direction == 'sur':
-            return self.center_cell, 0
-        elif direction == 'este':
-            return 0, self.center_cell
-        else:  # oeste
-            return self.grid_size - 1, self.center_cell
+        # Spawn de vehículos, lógica a parte
+        self.spawn = SpawnVehicle()
 
     # Genera un nuevo vehículo en una dirección aleatoria.
     def spawn_vehicle(self):
         direction = random.choice(['norte', 'sur', 'este', 'oeste'])
+        spawn_pos = self.spawn.get_spawn_position(direction, self.center_cell, self.grid_size)
+        col = spawn_pos[0]
+        row = spawn_pos[1]
 
-        # vehicle = Vehicle() # falta el manejo de veiculos
+        if self.grid[row][col] != 1:
+            vehicle = self.spawn.spawn_vehicle(spawn_pos)
 
-        #self.vehicles.append(vehicle)
+            self.vehicles.append(vehicle)
+
+            print(f"vehiculo spawneado en {col, row} a las {self.current_hour}:{self.current_minute}")
+            self.grid[row][col] = 1
+        else:
+            print(f"Ya hay un vehiculo en {col, row}, no fue posible aparecer otro")
 
     # Cuenta vehículos esperando en cada dirección y los categoriza.
     def get_traffic_levels(self):
@@ -77,6 +77,15 @@ class Intersection:
 
         return levels['norte'], levels['sur'], levels['este'], levels['oeste'], self.semaforo.state, self.semaforo.get_time_category()
 
+    # Retorna el tamaño de la grilla
+    def get_size(self):
+        return self.grid_size
+
+    # Retorna el valor de la posicion señalada de la grilla
+    def get_position(self, x, y):
+        return self.grid[x][y]
+
+
     def get_waiting_vehicles_count(self):
         # Contar vehiculos
         return 0
@@ -86,10 +95,45 @@ class Intersection:
         # calcular recompensa del agente (?
         return 0
 
-
+    # Calcular steps
     def step(self):
-        # hace una accion en el etorno y actualiza (?
+        # Avanzar el tiempo simulado
+        # 1 step = 1 minuto
+        self.current_minute += 1
+
+        if self.current_minute >= 60:
+            self.current_hour += 1
+            self.current_minute = 0
+
+        if self.current_hour >= 24:
+            # Reiniciar día
+            self.current_hour = 0
+
+        # Spawn de vehículos
+        self.spawn_counter += 1
+        spawn_interval = self.spawn.get_spawn_interval(self.current_hour)
+
+        if self.spawn_counter >= spawn_interval:
+            self.spawn_vehicle()
+            self.spawn_counter = 0
+
+        # Mover vehículos
+        #...
+
+        # Actualizar semáforo
+        # ...
+
+        # Obtener nuevo estado
+        # ...
+
+        # Calcular reward
+        # ...
+
         return 0
+
+    # Para animación visual
+    def update(self, dt):
+        pass
 
     def reset(self):
         # reiniciar el entorno (?
