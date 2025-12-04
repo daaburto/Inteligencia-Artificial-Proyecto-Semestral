@@ -1,7 +1,10 @@
+import random
+
 class Vehiculo:
     def __init__(self, position, direction):
         self.__position = [position[0], position[1]]
         self.__direction = direction
+        self.image = random.randint(1,5)
 
     def get_position(self):
         return self.__position
