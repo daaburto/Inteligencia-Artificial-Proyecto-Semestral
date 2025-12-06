@@ -85,6 +85,49 @@ class Intersection:
     def get_position(self, x, y):
         return self.grid[y][x]
 
+    # Obtener lista de vehículos que están en la intersección
+    def get_vehicles_in_intersection(self):
+        vehicles = []
+        border_offset = self.grid_size // 4 + 1
+        min_c = border_offset
+        max_c = self.grid_size - border_offset - 1
+
+        for auto in self.vehicles:
+            x, y = auto.get_position()
+            if min_c <= x <= max_c and min_c <= y <= max_c:
+                vehicles.append(auto)
+        return vehicles
+
+    def can_cross(self, vehiculo):
+        direction = vehiculo.get_direction()
+        x,y = vehiculo.get_position()
+        border_offset = self.grid_size//4 + 1
+
+        # Verificar sólo si el auto está a punto de cruzar
+        if direction == 'norte' and y != self.grid_size - border_offset:
+            return True
+        if direction == 'sur' and y != border_offset - 1:
+            return True
+        if direction == 'este' and x != border_offset - 1:
+            return True
+        if direction == 'oeste' and x != self.grid_size - border_offset:
+            return True
+
+        blockers = {
+            'norte': ['este','oeste'],
+            'sur': ['este', 'oeste'],
+            'este': ['norte', 'sur'],
+            'oeste': ['norte', 'sur']
+        }
+        interseccion_autos = self.get_vehicles_in_intersection()
+
+        for auto in interseccion_autos:
+            if auto is vehiculo:
+                continue
+
+            if auto.get_direction() in blockers[direction]:
+                return False
+        return True
 
     def get_waiting_vehicles_count(self):
         # Contar vehiculos
@@ -121,31 +164,50 @@ class Intersection:
         for vehiculo in self.vehicles:
             # Tomar x e y del vehículo actual
             x,y = vehiculo.get_position()
-
+            # Posición en la que los autos se detendrán
+            border_offset = self.grid_size//4 + 1
             # Verificar que no hay un vehículo en la casilla donde se está avanzando
             if vehiculo.get_direction() == 'norte' and y != 0:
-                y -= 1
+                # Verificar en su casilla correspondiente si el semáforo está detenido o no
+                if self.semaforo.is_green('norte') or  y != self.grid_size - border_offset:
+                    # Si hay un vehículo atravezando el cruce, no pasar hasta que hayan pasado los vehículos
+                    if self.can_cross(vehiculo):
+                        y -= 1
+                        # En este caso el vehículo no está en una orilla, por lo que comparamos y avanzamos
+                        if self.grid[y][x] != 1:
+                            vehiculo.move(self.grid_size)
             elif vehiculo.get_direction() == 'sur' and y != self.grid_size - 1:
-                y += 1
+                if self.semaforo.is_green('sur') or y != border_offset - 1:
+                    if self.can_cross(vehiculo):
+                        y += 1
+                        if self.grid[y][x] != 1:
+                            vehiculo.move(self.grid_size)
             elif vehiculo.get_direction() == 'este' and x != self.grid_size - 1:
-                x += 1
+                if self.semaforo.is_green('este') or x != border_offset - 1:
+                    if self.can_cross(vehiculo):
+                        x += 1
+                        if self.grid[y][x] != 1:
+                            vehiculo.move(self.grid_size)
             elif vehiculo.get_direction() == 'oeste' and x != 0:
-                x -= 1
+                if self.semaforo.is_green('oeste') or x != self.grid_size - border_offset:
+                    if self.can_cross(vehiculo):
+                        x -= 1
+                        if self.grid[y][x] != 1:
+                            vehiculo.move(self.grid_size)
             else:
                 # Caso en el que el vehículo esté en una orilla de la grilla, donde no podemos comparar para x o y +-1
                 if not vehiculo.move(self.grid_size):
                     self.vehicles.remove(vehiculo)
                     print(f"vehículo {vehiculo} destrozado")
-            # En este caso el vehículo no está en una orilla, por lo que comparamos y avanzamos
-            if self.grid[y][x] != 1:
-                vehiculo.move(self.grid_size)
+
 
 
         # Actualizar grilla
         self.update_grid()
 
         # Actualizar semáforo
-        # ...
+        if not self.semaforo.change_state():
+            self.semaforo.update()
 
         # Obtener nuevo estado
         # ...

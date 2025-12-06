@@ -4,7 +4,7 @@ from backend.interseccion import Intersection
 # TRAINING_MODE = 0;  Useful for visualization, few steps per minute
 # TRAINING_MODE = 1; Used to train the model, a lot of steps per minute
 class Game:
-    def __init__(self, MODE):
+    def __init__(self, MODE, GRID):
         pygame.init()
         self.screen_size = 800
         self.screen = pygame.display.set_mode((self.screen_size, self.screen_size))
@@ -12,6 +12,7 @@ class Game:
         self.running = True
 
         self.TRAINING_MODE = MODE
+        self.__GRID = GRID
         self.tick = 0
 
         # Objetos
@@ -26,7 +27,14 @@ class Game:
             pygame.image.load("../resources/car4.png").convert_alpha(),
             pygame.image.load("../resources/car5.png").convert_alpha()]
         for i in range(len(self.__cars)):
-            self.__cars[i] = pygame.transform.scale(self.__cars[i], (80,80))
+            self.__cars[i] = pygame.transform.scale(self.__cars[i], (40,40))
+
+        self.__trafficlight_img = [
+            pygame.image.load("../resources/Semaforo_rojo.png"),
+            pygame.image.load("../resources/Semaforo_amarillo.png"),
+            pygame.image.load("../resources/Semaforo_verde.png")]
+        for i in range(len(self.__trafficlight_img)):
+            self.__trafficlight_img[i] = pygame.transform.scale(self.__trafficlight_img[i], (200,200))
 
 
     def run(self):
@@ -55,7 +63,7 @@ class Game:
         self.screen.fill((30,30,30))
         self.screen.blit(self.__background, (0,0))
 
-        # Dibujar la grilla en pantalla
+        # Tamaños
         grid_size = self.interseccion.get_size()
         rec_size = self.screen_size/grid_size
 
@@ -79,28 +87,36 @@ class Game:
             cy = y * rec_size
             if auto.get_direction() == "sur":
                 car_image = pygame.transform.rotate(car_image, 180)
-                cx = (x*rec_size) - 1.5*rec_size
-                cy = y * rec_size
+                cx = (x*rec_size) - 0.8*rec_size
             elif auto.get_direction() == "este":
                 car_image = pygame.transform.rotate(car_image, -90)
+                cy = (y*rec_size) + (0.5*rec_size)
             elif auto.get_direction() == "oeste":
                 car_image = pygame.transform.rotate(car_image, 90)
-                cy = (y * rec_size) - (1.5*rec_size)
-
-
+                cy = (y * rec_size) - (0.5*rec_size)
+            else:
+                cx = (x * rec_size) + 0.8 * rec_size
             self.screen.blit(car_image, (cx, cy))
+        # Dibujar semáforo
+        if self.interseccion.semaforo.is_green("norte"):
+            self.screen.blit(self.__trafficlight_img[2], (10.4*rec_size, 2.5*rec_size))
+        else:
+            self.screen.blit(self.__trafficlight_img[0], (10.4 * rec_size, 2.5 * rec_size))
 
-        for i in range(grid_size):
-            for j in range(grid_size):
-                x = rec_size*i
-                y = rec_size*j
-                rec_color = (60, 60, 120)
-                if self.interseccion.get_position(i,j) == 1:
-                    rec_color = (120,40,20)
+        # Dibujar grilla para ver posiciones exactar de autos
+        # No es necesaria dibujarla al visualizar
+        if self.__GRID:
+            for i in range(grid_size):
+                for j in range(grid_size):
+                    x = rec_size*i
+                    y = rec_size*j
+                    rec_color = (60, 60, 120)
+                    if self.interseccion.get_position(i,j) == 1:
+                        rec_color = (120,40,20)
 
-                pygame.draw.rect(self.screen, rec_color, (x,y,rec_size-30,rec_size-30), border_radius = 15)
+                    pygame.draw.rect(self.screen, rec_color, (x,y,rec_size-30,rec_size-30), border_radius = 15)
 
 
         pygame.display.flip()
 if __name__ == "__main__":
-    Game(0).run()
+    Game(1, 1).run()
