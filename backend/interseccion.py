@@ -58,8 +58,25 @@ class Intersection:
     def get_traffic_levels(self):
         counts = {'norte': 0, 'sur': 0, 'este': 0, 'oeste': 0}
 
-        # Manejar self.vehicles
+        border_offset = self.grid_size // 4 + 1
 
+        # Definir zonas de espera para cada dirección
+        wait_zones = {
+            'norte': lambda x, y: x == self.center_cell and y >= self.grid_size - border_offset,
+            'sur': lambda x, y: x == self.center_cell - 1 and y < border_offset,
+            'este': lambda x, y: y == self.center_cell and x < border_offset,
+            'oeste': lambda x, y: y == self.center_cell - 1 and x >= self.grid_size - border_offset
+        }
+
+        # Contar vehículos en zona de espera
+        for vehiculo in self.vehicles:
+            x, y = vehiculo.get_position()
+            direction = vehiculo.get_direction()
+
+            if wait_zones[direction](x, y):
+                counts[direction] += 1
+
+        # Categorizar niveles de tráfico
         levels = {}
         for direction, count in counts.items():
             if count <= 5:
@@ -73,9 +90,7 @@ class Intersection:
 
     # Retorna el estado del entorno para el agente.
     def get_state(self):
-        # TODO: get_traffic_levels()
         levels = self.get_traffic_levels()
-
         return levels['norte'], levels['sur'], levels['este'], levels['oeste'], self.semaforo.state, self.semaforo.get_time_category()
 
     # Retorna el tamaño de la grilla
@@ -130,14 +145,32 @@ class Intersection:
                 return False
         return True
 
+    # Cuenta el total de vehículos esperando (fuera de la intersección).
     def get_waiting_vehicles_count(self):
-        # Contar vehiculos
-        return 0
+        border_offset = self.grid_size // 4 + 1
+        min_c = border_offset
+        max_c = self.grid_size - border_offset - 1
 
+        waiting_count = 0
+        for vehiculo in self.vehicles:
+            x, y = vehiculo.get_position()
+            # Si NO está en la intersección, está esperando
+            if not (min_c <= x <= max_c and min_c <= y <= max_c):
+                waiting_count += 1
+        return waiting_count
 
-    def calculate_reward(self):
-        # calcular recompensa del agente (?
-        return 0
+    # Calcula la recompensa basada en vehículos esperando y cambios de fase.
+    def calculate_reward(self, accion_tomada):
+        # accion_tomada: 0 = mantener, 1 = cambiar
+
+        # Penalización por cada vehículo esperando
+        waiting_vehicles = self.get_waiting_vehicles_count()
+        wait_penalty = -waiting_vehicles
+
+        # Penalización adicional por cambiar de fase
+        change_penalty = -10 if accion_tomada == 1 else 0
+
+        return wait_penalty + change_penalty
 
     # Calcular steps
     def step(self):
@@ -235,6 +268,15 @@ class Intersection:
     def reset(self):
         # reiniciar el entorno (?
         return 0
+
+    # Aplica la acción del agente al semáforo.
+    def apply_action(self, action):
+        # action: 0 = mantener fase actual, 1 = cambiar fase
+        if action == 0:
+            return True
+        elif action == 1:
+            return self.semaforo.change_state()
+        return False
 
     # Para DEBUG
     def __repr__(self):
