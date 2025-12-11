@@ -11,7 +11,7 @@ class Intersection:
     Gestiona la lógica del entorno usando una grilla.
     """
 
-    def __init__(self, grid_size=20):
+    def __init__(self, grid_size=40):
         self.grid_size = grid_size
         self.center_cell = grid_size // 2  # Casilla central de la intersección
 
@@ -26,6 +26,7 @@ class Intersection:
         self.base_spawn_interval = 3  # Spawn cada N steps
         self.current_hour = 6  # Hora inicial simulada (6:00 AM)
         self.current_minute = 0
+        self.current_second = 0
 
         # Métricas
         self.total_wait_time = 0
@@ -48,7 +49,7 @@ class Intersection:
 
             self.vehicles.append(vehicle)
 
-            print(f"vehiculo spawneado en {y, x} hacia {direction} a las {self.current_hour}:{self.current_minute}")
+            print(f"vehiculo spawneado en {y, x} hacia {direction} a las {self.current_hour}:{self.current_minute}:{self.current_second}")
             self.grid[y][x] = 1
         else:
             print(f"Ya hay un vehiculo en {y, x}, no fue posible aparecer otro")
@@ -88,7 +89,7 @@ class Intersection:
     # Obtener lista de vehículos que están en la intersección
     def get_vehicles_in_intersection(self):
         vehicles = []
-        border_offset = self.grid_size // 4 + 1
+        border_offset = self.grid_size // 4 + 6
         min_c = border_offset
         max_c = self.grid_size - border_offset - 1
 
@@ -101,7 +102,7 @@ class Intersection:
     def can_cross(self, vehiculo):
         direction = vehiculo.get_direction()
         x,y = vehiculo.get_position()
-        border_offset = self.grid_size//4 + 1
+        border_offset = self.grid_size//4 + 6
 
         # Verificar sólo si el auto está a punto de cruzar
         if direction == 'norte' and y != self.grid_size - border_offset:
@@ -142,7 +143,10 @@ class Intersection:
     def step(self):
         # Avanzar el tiempo simulado
         # 1 step = 1 minuto
-        self.current_minute += 1
+        self.current_second += 1
+        if self.current_second >= 60:
+            self.current_minute += 1
+            self.current_second = 0
 
         if self.current_minute >= 60:
             self.current_hour += 1
@@ -165,7 +169,7 @@ class Intersection:
             # Tomar x e y del vehículo actual
             x,y = vehiculo.get_position()
             # Posición en la que los autos se detendrán
-            border_offset = self.grid_size//4 + 1
+            border_offset = self.grid_size//4 + 6
             # Verificar que no hay un vehículo en la casilla donde se está avanzando
             if vehiculo.get_direction() == 'norte' and y != 0:
                 # Verificar en su casilla correspondiente si el semáforo está detenido o no

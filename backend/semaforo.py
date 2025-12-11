@@ -18,7 +18,7 @@ class Semaforo:
 
         # Tiempo mínimo por estado
         # Durante estos primeros 5 segundos NO se puede cambiar de estado
-        self.min_state_duration = 5.0
+        self.min_state_duration = 15.0
 
     def can_change_state(self):
         return self.time_since_change >= self.min_state_duration

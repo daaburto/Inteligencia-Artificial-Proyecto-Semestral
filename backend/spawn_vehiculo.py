@@ -4,7 +4,7 @@ from backend.vehiculo import Vehiculo
 class SpawnVehicle:
     def __init__(self):
         # Configuración de generación de tráfico
-        self.base_spawn_interval = 3  # Spawn cada N steps
+        self.base_spawn_interval = 6  # Spawn cada N steps
 
         # Métricas
         self.total_wait_time = 0
@@ -19,7 +19,7 @@ class SpawnVehicle:
     # En las horas punta genera vehículos más frecuentemente.
     def get_spawn_interval(self, current_hour):
         if self.is_rush_hour(current_hour):
-            return max(1, int(self.base_spawn_interval * 0.5))  # Spawn más rápido
+            return max(1, int(self.base_spawn_interval * 0.3))  # Spawn más rápido
         return self.base_spawn_interval
 
     # Retorna la posición inicial en la grilla según dirección.

@@ -27,7 +27,7 @@ class Game:
             pygame.image.load("../resources/car4.png").convert_alpha(),
             pygame.image.load("../resources/car5.png").convert_alpha()]
         for i in range(len(self.__cars)):
-            self.__cars[i] = pygame.transform.scale(self.__cars[i], (40,40))
+            self.__cars[i] = pygame.transform.scale(self.__cars[i], (20,20))
 
         self.__trafficlight_img = [
             pygame.image.load("../resources/Semaforo_rojo.png"),
@@ -42,7 +42,7 @@ class Game:
             self.handle_events()
             self.update()
             self.draw()
-            self.clock.tick(60)
+            self.clock.tick(240)
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -87,21 +87,21 @@ class Game:
             cy = y * rec_size
             if auto.get_direction() == "sur":
                 car_image = pygame.transform.rotate(car_image, 180)
-                cx = (x*rec_size) - 0.8*rec_size
+                cx = (x*rec_size) - 2.2*rec_size
             elif auto.get_direction() == "este":
                 car_image = pygame.transform.rotate(car_image, -90)
-                cy = (y*rec_size) + (0.5*rec_size)
+                cy = (y*rec_size) + (0.8*rec_size)
             elif auto.get_direction() == "oeste":
                 car_image = pygame.transform.rotate(car_image, 90)
-                cy = (y * rec_size) - (0.5*rec_size)
+                cy = (y * rec_size) - (1.8*rec_size)
             else:
-                cx = (x * rec_size) + 0.8 * rec_size
+                cx = (x * rec_size) + 1 * rec_size
             self.screen.blit(car_image, (cx, cy))
         # Dibujar semáforo
         if self.interseccion.semaforo.is_green("norte"):
-            self.screen.blit(self.__trafficlight_img[2], (10.4*rec_size, 2.5*rec_size))
+            self.screen.blit(self.__trafficlight_img[2], (20*rec_size, 5.5*rec_size))
         else:
-            self.screen.blit(self.__trafficlight_img[0], (10.4 * rec_size, 2.5 * rec_size))
+            self.screen.blit(self.__trafficlight_img[0], (20 * rec_size, 5.5 * rec_size))
 
         # Dibujar grilla para ver posiciones exactar de autos
         # No es necesaria dibujarla al visualizar
@@ -119,4 +119,4 @@ class Game:
 
         pygame.display.flip()
 if __name__ == "__main__":
-    Game(1, 1).run()
+    Game(0, 0).run()
