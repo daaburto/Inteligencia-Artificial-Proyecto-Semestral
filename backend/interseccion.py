@@ -152,17 +152,25 @@ class Intersection:
         return waiting_count
 
 
-    def calculate_reward(self, accion_tomada):
+    def calculate_reward(self, accion_tomada, moved_this_step):
         # accion_tomada : 0 = mantener, 1 = cambiar
 
         # Penalización por cada vehículo esperando
         waiting_vehicles = self.get_waiting_vehicles_count()
-        wait_penalty = -waiting_vehicles
+        wait_penalty = -0.5 * waiting_vehicles
 
-        # Penalización adicional por cambiar de fase
-        change_penalty = -10 if accion_tomada == 1 else 0
+        # Premio al pasar autos
+        pass_reward = moved_this_step * 2.0
 
-        return wait_penalty + change_penalty
+        # Penalización por cambiar de fase
+        change_penalty = -3.0 if accion_tomada == 1 else 0.0
+
+        raw_reward = wait_penalty + pass_reward + change_penalty
+
+        # acotar recompensa por step para estabilidad
+        reward = max(-20.0, min(20.0, raw_reward))
+
+        return reward
 
     # Calcular steps
     def step(self):
@@ -190,11 +198,17 @@ class Intersection:
             self.spawn_counter = 0
 
         # Mover vehículos
+        moved_this_step = 0
+
         for vehiculo in self.vehicles:
+            # Guardar posición antigua
+            old_x, old_y = vehiculo.get_position()
+
             # Tomar x e y del vehículo actual
             x,y = vehiculo.get_position()
             # Posición en la que los autos se detendrán
             border_offset = self.grid_size//4 + 6
+
             # Verificar que no hay un vehículo en la casilla donde se está avanzando
             if vehiculo.get_direction() == 'norte' and y != 0:
                 # Verificar en su casilla correspondiente si el semáforo está detenido o no
@@ -228,6 +242,12 @@ class Intersection:
                 if not vehiculo.move(self.grid_size):
                     self.vehicles.remove(vehiculo)
                     print(f"vehículo {vehiculo} destrozado")
+
+            new_x, new_y = vehiculo.get_position()
+            if (new_x, new_y) != (old_x, old_y):
+                moved_this_step += 1
+
+        return moved_this_step
 
 
 

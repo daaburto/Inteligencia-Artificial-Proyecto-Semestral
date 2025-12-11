@@ -52,11 +52,11 @@ class TrafficSimulator:
                 env.apply_action(action)
 
                 # Avanzar entorno
-                env.step()
+                moved = env.step()
 
                 # Obtener nuevo estado y recompensa
                 next_state = env.get_state()
-                reward = env.calculate_reward(action)
+                reward = env.calculate_reward(action, moved)
 
                 # Actualizar agente
                 done = (step == max_steps_per_episode - 1)
