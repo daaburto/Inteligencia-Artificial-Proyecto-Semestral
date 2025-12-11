@@ -131,13 +131,35 @@ class Intersection:
         return True
 
     def get_waiting_vehicles_count(self):
-        # Contar vehiculos
-        return 0
+        waiting_count = 0
+        border_offset = self.grid_size // 4 + 6
+        min_c = border_offset
+        max_c = self.grid_size - border_offset - 1
+
+        for auto in self.vehicles:
+            x, y = auto.get_position()
+            if auto.get_direction == 'este' and x < min_c:
+                waiting_count +=1
+            elif auto.get_direction == 'oeste' and x > max_c:
+                waiting_count +=1
+            elif auto.get_direction == 'norte' and y > max_c:
+                waiting_count +=1
+            elif auto.get_direction == 'sur' and y < min_c:
+                waiting_count +=1
+        return waiting_count
 
 
-    def calculate_reward(self):
-        # calcular recompensa del agente (?
-        return 0
+    def calculate_reward(self, accion_tomada):
+        # accion_tomada : 0 = mantener, 1 = cambiar
+
+        # Penalización por cada vehículo esperando
+        waiting_vehicles = self.get_waiting_vehicles_count()
+        wait_penalty = -waiting_vehicles
+
+        # Penalización adicional por cambiar de fase
+        change_penalty = -10 if accion_tomada == 1 else 0
+
+        return wait_penalty + change_penalty
 
     # Calcular steps
     def step(self):
@@ -235,6 +257,13 @@ class Intersection:
     def reset(self):
         # reiniciar el entorno (?
         return 0
+
+    def apply_action(self, action):
+        # action: 0 = mantener fase actual, 1 = cambiar fase
+        if action == 0:
+            return True
+        elif action == 1:
+            return False
 
     # Para DEBUG
     def __repr__(self):
