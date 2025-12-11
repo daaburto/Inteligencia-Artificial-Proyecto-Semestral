@@ -43,7 +43,7 @@ class QLearning:
     def set_q_value(self, state, action, value):
         self.q_table[(state, action)] = value
 
-# Selecciona una acción usando política epsilon-greedy.
+    # Selecciona una acción usando política epsilon-greedy.
     def get_action(self, state, training=True):
         # Durante entrenamiento, exploración con epsilon-greedy
         if training and np.random.random() < self.epsilon:

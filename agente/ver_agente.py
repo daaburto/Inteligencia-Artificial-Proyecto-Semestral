@@ -80,28 +80,23 @@ class GameWithAgent:
 
     def update(self):
         """Actualiza la simulación."""
-        self.tick += 1 / 1000
+        # Obtener estado
+        state = self.interseccion.get_state()
 
-        if self.tick >= 1:  # 1 step por segundo
-            self.tick = 0
+        # Agente decide acción (sin exploración)
+        action = self.agent.get_action(state, training=False)
 
-            # Obtener estado
-            state = self.interseccion.get_state()
+        # Aplicar acción
+        if self.interseccion.apply_action(action):
+            if action == 1:
+                self.phase_changes += 1
 
-            # Agente decide acción (sin exploración)
-            action = self.agent.get_action(state, training=False)
+        # Avanzar simulación
+        self.interseccion.step()
 
-            # Aplicar acción
-            if self.interseccion.apply_action(action):
-                if action == 1:
-                    self.phase_changes += 1
-
-            # Avanzar simulación
-            self.interseccion.step()
-
-            # Actualizar métricas
-            self.total_steps += 1
-            self.total_wait_time += self.interseccion.get_waiting_vehicles_count()
+        # Actualizar métricas
+        self.total_steps += 1
+        self.total_wait_time += self.interseccion.get_waiting_vehicles_count()
 
     def draw(self):
         """Dibuja la escena."""

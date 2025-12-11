@@ -24,7 +24,7 @@ class Intersection:
 
         # Configuración de generación de tráfico
         self.base_spawn_interval = 3  # Spawn cada N steps
-        self.current_hour = 0  # Hora inicial simulada (6:00 AM)
+        self.current_hour = 7  # Hora inicial simulada (6:00 AM)
         self.current_minute = 0
         self.current_second = 0
 
@@ -73,7 +73,6 @@ class Intersection:
 
     # Retorna el estado del entorno para el agente.
     def get_state(self):
-        # TODO: get_traffic_levels()
         levels = self.get_traffic_levels()
 
         return levels['norte'], levels['sur'], levels['este'], levels['oeste'], self.semaforo.state, self.semaforo.get_time_category()
@@ -138,14 +137,18 @@ class Intersection:
 
         for auto in self.vehicles:
             x, y = auto.get_position()
-            if auto.get_direction == 'este' and x < min_c:
+            if auto.get_direction() == 'este' and x < min_c:
                 waiting_count +=1
-            elif auto.get_direction == 'oeste' and x > max_c:
+                continue
+            elif auto.get_direction() == 'oeste' and x > max_c:
                 waiting_count +=1
-            elif auto.get_direction == 'norte' and y > max_c:
+                continue
+            elif auto.get_direction() == 'norte' and y > max_c:
                 waiting_count +=1
-            elif auto.get_direction == 'sur' and y < min_c:
+                continue
+            elif auto.get_direction() == 'sur' and y < min_c:
                 waiting_count +=1
+                continue
         return waiting_count
 
 
