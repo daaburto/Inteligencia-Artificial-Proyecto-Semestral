@@ -24,7 +24,7 @@ class Intersection:
 
         # Configuración de generación de tráfico
         self.base_spawn_interval = 3  # Spawn cada N steps
-        self.current_hour = 6  # Hora inicial simulada (6:00 AM)
+        self.current_hour = 0  # Hora inicial simulada (6:00 AM)
         self.current_minute = 0
         self.current_second = 0
 

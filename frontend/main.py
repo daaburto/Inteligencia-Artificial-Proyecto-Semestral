@@ -15,6 +15,8 @@ class Game:
         self.__GRID = GRID
         self.tick = 0
 
+        self.font_minecraft = pygame.font.Font("../resources/fonts/minecraft.ttf", 30)
+
         # Objetos
         self.interseccion = Intersection()
 
@@ -53,7 +55,7 @@ class Game:
         if self.TRAINING_MODE:
             self.interseccion.step()
         else:
-            self.tick += 1/100
+            self.tick += 1/1000
             if self.tick >= 1:
                 self.tick = 0
                 self.interseccion.step()
@@ -103,6 +105,10 @@ class Game:
         else:
             self.screen.blit(self.__trafficlight_img[0], (20 * rec_size, 5.5 * rec_size))
 
+        # Dibujar hora
+        hora = self.font_minecraft.render(f"{self.interseccion.current_hour}:{self.interseccion.current_minute}:{self.interseccion.current_second}", True, (255,255,255))
+        self.screen.blit(hora, (1*rec_size, 1*rec_size))
+
         # Dibujar grilla para ver posiciones exactar de autos
         # No es necesaria dibujarla al visualizar
         if self.__GRID:
@@ -119,4 +125,4 @@ class Game:
 
         pygame.display.flip()
 if __name__ == "__main__":
-    Game(0, 0).run()
+    Game(1, 0).run()

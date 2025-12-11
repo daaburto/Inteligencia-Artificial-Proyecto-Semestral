@@ -15,11 +15,17 @@ class SpawnVehicle:
     def is_rush_hour(self, current_hour):
         return (7 <= current_hour < 9) or (17 <= current_hour < 20)
 
+    # Determina si es hora con menos tráfico (00:00 AM - 5:00 AM)
+    def is_am_hour(self, current_hour):
+        return 0 <= current_hour <= 5
+
     # Retorna el intervalo de spawn según la hora.
     # En las horas punta genera vehículos más frecuentemente.
     def get_spawn_interval(self, current_hour):
         if self.is_rush_hour(current_hour):
             return max(1, int(self.base_spawn_interval * 0.3))  # Spawn más rápido
+        elif self.is_am_hour(current_hour):
+            return int(self.base_spawn_interval*2)
         return self.base_spawn_interval
 
     # Retorna la posición inicial en la grilla según dirección.
