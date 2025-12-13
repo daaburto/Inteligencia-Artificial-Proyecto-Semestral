@@ -58,7 +58,24 @@ class Intersection:
     def get_traffic_levels(self):
         counts = {'norte': 0, 'sur': 0, 'este': 0, 'oeste': 0}
 
-        # Manejar self.vehicles
+        border_offset = self.grid_size // 4 + 6
+        min_c = border_offset
+        max_c = self.grid_size - border_offset - 1
+
+        # Contar vehículos esperando ANTES de la intersección
+        for auto in self.vehicles:
+            x, y = auto.get_position()
+            direction = auto.get_direction()
+
+            # Verificar si el vehículo está esperando en el borde
+            if direction == 'este' and x < min_c:
+                counts['este'] += 1
+            elif direction == 'oeste' and x > max_c:
+                counts['oeste'] += 1
+            elif direction == 'norte' and y > max_c:
+                counts['norte'] += 1
+            elif direction == 'sur' and y < min_c:
+                counts['sur'] += 1
 
         levels = {}
         for direction, count in counts.items():
@@ -153,9 +170,6 @@ class Intersection:
 
 
     def calculate_reward(self, accion_tomada, moved_this_step):
-        # accion_tomada : 0 = mantener, 1 = cambiar
-
-        # Penalización por cada vehículo esperando
         waiting_vehicles = self.get_waiting_vehicles_count()
         wait_penalty = -0.5 * waiting_vehicles
 
@@ -247,7 +261,6 @@ class Intersection:
             if (new_x, new_y) != (old_x, old_y):
                 moved_this_step += 1
 
-        return moved_this_step
 
 
 
@@ -255,16 +268,8 @@ class Intersection:
         self.update_grid()
 
         # Actualizar semáforo
-        if not self.semaforo.change_state():
-            self.semaforo.update()
-
-        # Obtener nuevo estado
-        # ...
-
-        # Calcular reward
-        # ...
-
-        return 0
+        self.semaforo.update()
+        return moved_this_step
 
     def update_grid(self):
         for i in range(self.grid_size):
@@ -283,9 +288,14 @@ class Intersection:
 
     def apply_action(self, action):
         # action: 0 = mantener fase actual, 1 = cambiar fase
-        if action == 0:
-            return True
-        elif action == 1:
+        if action == 1:
+            # Intentar cambiar
+            changed = self.semaforo.change_state()
+            if changed:
+                self.phase_changes += 1
+            return changed
+        else:
+            # Mantener fase actual (no hacer nada)
             return False
 
     # Para DEBUG
