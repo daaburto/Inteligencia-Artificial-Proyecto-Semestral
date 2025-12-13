@@ -110,7 +110,6 @@ class QLearning:
             pickle.dump(data, f)
 
         print(f"Tabla Q guardada en {filepath}")
-        print(f"Estados en tabla: {len(self.q_table) // 2}")
 
     # Carga la tabla Q desde un archivo pickle
     def load(self, filepath="models/q_table.pkl"):

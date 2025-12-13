@@ -11,6 +11,7 @@ class Vehiculo:
     def get_direction(self):
         return self.__direction
 
+    # Movimiento del vehiculo
     def move(self, grid_size):
         match self.__direction:
             case 'norte':
@@ -33,8 +34,3 @@ class Vehiculo:
                     return False
                 self.__position[0] -= 1
                 return True
-
-
-# Capacidad para moverse
-# Necesita saber posición actual, para ver si un espacio está ocupado o no
-# Dirección a la que va?

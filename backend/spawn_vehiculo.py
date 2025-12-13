@@ -1,4 +1,3 @@
-import random
 from backend.vehiculo import Vehiculo
 
 class SpawnVehicle:

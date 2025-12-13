@@ -1,9 +1,5 @@
 import random
-
-from pygame.display import get_active
-
 from backend.semaforo import Semaforo
-from backend.vehiculo import Vehiculo
 from backend.spawn_vehiculo import SpawnVehicle
 
 class Intersection:
@@ -46,13 +42,10 @@ class Intersection:
 
         if self.grid[y][x] != 1:
             vehicle = self.spawn.spawn_vehicle(spawn_pos, direction)
-
             self.vehicles.append(vehicle)
-
-            print(f"vehiculo spawneado en {y, x} hacia {direction} a las {self.current_hour}:{self.current_minute}:{self.current_second}")
             self.grid[y][x] = 1
         else:
-            print(f"Ya hay un vehiculo en {y, x}, no fue posible aparecer otro")
+            pass
 
     # Cuenta vehículos esperando en cada dirección y los categoriza.
     def get_traffic_levels(self):
@@ -85,7 +78,6 @@ class Intersection:
                 levels[direction] = 1  # medio
             else:
                 levels[direction] = 2  # alto
-
         return levels
 
     # Retorna el estado del entorno para el agente.
@@ -255,7 +247,6 @@ class Intersection:
                 # Caso en el que el vehículo esté en una orilla de la grilla, donde no podemos comparar para x o y +-1
                 if not vehiculo.move(self.grid_size):
                     self.vehicles.remove(vehiculo)
-                    print(f"vehículo {vehiculo} destrozado")
 
             new_x, new_y = vehiculo.get_position()
             if (new_x, new_y) != (old_x, old_y):

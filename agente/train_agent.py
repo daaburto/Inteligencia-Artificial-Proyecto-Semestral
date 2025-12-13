@@ -1,4 +1,3 @@
-import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from backend.interseccion import Intersection
@@ -23,8 +22,7 @@ class TrafficSimulator:
         env = Intersection(grid_size=self.grid_size)
         return env
 
-    def train(self, num_episodes=500, max_steps_per_episode=86400,
-              save_interval=50, verbose=True):
+    def train(self, num_episodes=500, max_steps_per_episode=86400, save_interval=50, verbose=True):
 
         # Entrena el agente durante múltiples episodios.
 
@@ -118,15 +116,13 @@ class TrafficSimulator:
         episode_vehicle_counts = []
         episode_throughput = []
 
-        print("\n=== Evaluación del Agente ===")
-
         for episode in range(num_episodes):
             env = self.reset_environment()
             state = env.get_state()
 
             total_wait_time = 0
             total_vehicles = 0
-            total_moved = 0  # ✨ Nueva
+            total_moved = 0
 
             for step in range(max_steps):
                 action = self.agent.get_action(state, training=False)
@@ -147,11 +143,6 @@ class TrafficSimulator:
             episode_vehicle_counts.append(avg_vehicles)
             episode_throughput.append(avg_throughput)
 
-            print(f"Episodio {episode + 1}: "
-                  f"Espera = {avg_wait_time:.2f}, "
-                  f"Vehículos = {avg_vehicles:.2f}, "
-                  f"Throughput = {avg_throughput:.2f}")
-
         results = {
             'avg_wait_time': np.mean(episode_wait_times),
             'std_wait_time': np.std(episode_wait_times),
@@ -161,7 +152,7 @@ class TrafficSimulator:
             'std_throughput': np.std(episode_throughput)
         }
 
-        print(f"\n=== Resultados Finales ===")
+        print(f"\nResultados Finales")
         print(f"Tiempo de espera: {results['avg_wait_time']:.2f} ± {results['std_wait_time']:.2f}")
         print(f"Vehículos promedio: {results['avg_vehicles']:.2f} ± {results['std_vehicles']:.2f}")
         print(f"Throughput: {results['avg_throughput']:.2f} ± {results['std_throughput']:.2f}")
@@ -170,14 +161,11 @@ class TrafficSimulator:
 
     def compare_with_baseline(self, num_episodes=10, max_steps=1000):
         # Compara el agente entrenado con un semáforo de tiempo fijo.
-        print("\n=== Comparación: Agente vs. Baseline ===")
 
         # Evaluar agente entrenado
-        print("\n--- Agente Q-Learning ---")
         agent_results = self.evaluate(num_episodes, max_steps)
 
         # Evaluar baseline (cambio fijo cada 30 steps)
-        print("\n--- Semáforo Tiempo Fijo (30s) ---")
         baseline_wait_times = []
         baseline_throughput = []
 
@@ -201,23 +189,16 @@ class TrafficSimulator:
             baseline_wait_times.append(avg_wait_time)
             baseline_throughput.append(avg_throughput)
 
-            print(f"Episodio {episode + 1}: "
-                  f"Espera = {avg_wait_time:.2f}, "
-                  f"Throughput = {avg_throughput:.2f}")
-
         baseline_avg_wait = np.mean(baseline_wait_times)
         baseline_std_wait = np.std(baseline_wait_times)
         baseline_avg_throughput = np.mean(baseline_throughput)
 
-        print(f"\nBaseline - Espera: {baseline_avg_wait:.2f} ± {baseline_std_wait:.2f}")
-        print(f"Baseline - Throughput: {baseline_avg_throughput:.2f}")
 
         # Comparación
         wait_improvement = ((baseline_avg_wait - agent_results['avg_wait_time']) / baseline_avg_wait) * 100
-        throughput_improvement = ((agent_results[
-                                       'avg_throughput'] - baseline_avg_throughput) / baseline_avg_throughput) * 100
+        throughput_improvement = ((agent_results['avg_throughput'] - baseline_avg_throughput) / baseline_avg_throughput) * 100
 
-        print(f"\n=== Resultados ===")
+        print(f"\nResultados")
         print(f"Mejora en espera: {wait_improvement:.2f}%")
         print(f"Mejora en throughput: {throughput_improvement:.2f}%")
 
@@ -227,9 +208,7 @@ class TrafficSimulator:
         # Grafica el progreso del entrenamiento con todas las métricas.
         window = 20
 
-        # ========================================
-        # GRÁFICA 1: Recompensas y Tiempo de Espera
-        # ========================================
+        # Grafica 1: Recompensas y Tiempo de Espera
         fig1, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
 
         # Recompensas
@@ -258,12 +237,9 @@ class TrafficSimulator:
 
         plt.tight_layout()
         plt.savefig('training_progress.png', dpi=300)
-        print("\nGráfica 1 guardada: 'training_progress.png'")
         plt.show()
 
-        # ========================================
-        # GRÁFICA 2: Flujo de Tráfico y Cambios de Fase
-        # ========================================
+        # Grafico 2: Flujo de Tráfico y Cambios de Fase
         fig2, (ax3, ax4) = plt.subplots(2, 1, figsize=(10, 8))
 
         # Flujo de tráfico
@@ -271,8 +247,7 @@ class TrafficSimulator:
         smoothed_throughput = np.convolve(throughput, np.ones(window) / window, mode='valid')
 
         ax3.plot(throughput, alpha=0.3, label='Flujo', color='green')
-        ax3.plot(range(window - 1, len(throughput)), smoothed_throughput,
-                 label='Media móvil', color='darkgreen')
+        ax3.plot(range(window - 1, len(throughput)), smoothed_throughput, label='Media móvil', color='darkgreen')
         ax3.set_xlabel('Episodio')
         ax3.set_ylabel('Vehículos pasando (promedio)')
         ax3.set_title('Flujo de Tráfico')
@@ -284,8 +259,7 @@ class TrafficSimulator:
         smoothed_changes = np.convolve(changes, np.ones(window) / window, mode='valid')
 
         ax4.plot(changes, alpha=0.3, label='Cambios', color='orange')
-        ax4.plot(range(window - 1, len(changes)), smoothed_changes,
-                 label='Media móvil', color='darkorange')
+        ax4.plot(range(window - 1, len(changes)), smoothed_changes, label='Media móvil', color='darkorange')
         ax4.set_xlabel('Episodio')
         ax4.set_ylabel('Número de cambios de fase')
         ax4.set_title('Cambios de Fase')
@@ -294,17 +268,11 @@ class TrafficSimulator:
 
         plt.tight_layout()
         plt.savefig('training_flow_changes.png', dpi=300)
-        print("Gráfica 2 guardada: 'training_flow_changes.png'")
         plt.show()
 
 
 def main():
-    print("=== Entrenamiento de Agente Q-Learning ===\n")
-
     simulator = TrafficSimulator(grid_size=40)
-
-    # Entrenar
-    print("Iniciando entrenamiento...\n")
     metrics = simulator.train(
         num_episodes=500,
         max_steps_per_episode=1000,
@@ -317,8 +285,6 @@ def main():
 
     # Evaluar y comparar
     simulator.compare_with_baseline(num_episodes=10, max_steps=1000)
-
-    print("\n¡Entrenamiento completado!")
 
 
 if __name__ == "__main__":

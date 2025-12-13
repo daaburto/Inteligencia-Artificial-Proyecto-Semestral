@@ -125,4 +125,4 @@ class Game:
 
         pygame.display.flip()
 if __name__ == "__main__":
-    Game(1, 0).run()
+    Game(0, 0).run()
