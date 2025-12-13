@@ -6,7 +6,7 @@ from q_learning import QLearning
 
 
 class TrafficSimulator:
-    """Simulador para entrenar y evaluar el agente Q-Learning."""
+    # Simulador para entrenar y evaluar el agente Q-Learning.
 
     def __init__(self, grid_size=40):
         self.grid_size = grid_size
@@ -19,21 +19,20 @@ class TrafficSimulator:
         )
 
     def reset_environment(self):
-        """Reinicia el entorno para un nuevo episodio."""
+        # Reinicia el entorno para un nuevo episodio.
         env = Intersection(grid_size=self.grid_size)
         return env
 
     def train(self, num_episodes=500, max_steps_per_episode=86400,
               save_interval=50, verbose=True):
-        """
-        Entrena el agente durante múltiples episodios.
-        """
+
+        # Entrena el agente durante múltiples episodios.
+
         episode_rewards = []
         episode_wait_times = []
-        # ✨ NUEVAS MÉTRICAS
-        episode_throughput = []  # Vehículos que pasaron
-        episode_phase_changes = []  # Cambios de fase
-        episode_total_vehicles = []  # Total de vehículos en sistema
+        episode_throughput = []
+        episode_phase_changes = []
+        episode_total_vehicles = []
 
         for episode in range(num_episodes):
             env = self.reset_environment()
@@ -41,8 +40,8 @@ class TrafficSimulator:
 
             total_reward = 0
             total_wait_time = 0
-            total_moved = 0  # ✨ Nueva métrica
-            total_vehicles_sum = 0  # ✨ Nueva métrica
+            total_moved = 0
+            total_vehicles_sum = 0
 
             for step in range(max_steps_per_episode):
                 # Seleccionar acción
@@ -53,7 +52,7 @@ class TrafficSimulator:
 
                 # Avanzar entorno
                 moved = env.step()
-                total_moved += moved  # ✨ Acumular
+                total_moved += moved
 
                 # Obtener nuevo estado y recompensa
                 next_state = env.get_state()
@@ -66,7 +65,7 @@ class TrafficSimulator:
                 # Acumular métricas
                 total_reward += reward
                 total_wait_time += env.get_waiting_vehicles_count()
-                total_vehicles_sum += len(env.vehicles)  # ✨ Nueva métrica
+                total_vehicles_sum += len(env.vehicles)
 
                 state = next_state
 
@@ -75,27 +74,27 @@ class TrafficSimulator:
 
             # Guardar métricas
             avg_wait_time = total_wait_time / max_steps_per_episode
-            avg_throughput = total_moved / max_steps_per_episode  # ✨ Nueva
-            avg_vehicles = total_vehicles_sum / max_steps_per_episode  # ✨ Nueva
+            avg_throughput = total_moved / max_steps_per_episode
+            avg_vehicles = total_vehicles_sum / max_steps_per_episode
 
             episode_rewards.append(total_reward)
             episode_wait_times.append(avg_wait_time)
-            episode_throughput.append(avg_throughput)  # ✨ Nueva
-            episode_phase_changes.append(env.phase_changes)  # ✨ Nueva
-            episode_total_vehicles.append(avg_vehicles)  # ✨ Nueva
+            episode_throughput.append(avg_throughput)
+            episode_phase_changes.append(env.phase_changes)
+            episode_total_vehicles.append(avg_vehicles)
 
             # Mostrar progreso con más info
             if verbose and (episode + 1) % 10 == 0:
                 recent_rewards = np.mean(episode_rewards[-10:])
                 recent_wait = np.mean(episode_wait_times[-10:])
-                recent_throughput = np.mean(episode_throughput[-10:])  # ✨
-                recent_changes = np.mean(episode_phase_changes[-10:])  # ✨
+                recent_throughput = np.mean(episode_throughput[-10:])
+                recent_changes = np.mean(episode_phase_changes[-10:])
 
                 print(f"Episodio {episode + 1}/{num_episodes} | "
                       f"Reward: {recent_rewards:.2f} | "
                       f"Espera: {recent_wait:.2f} | "
-                      f"Throughput: {recent_throughput:.2f} | "  # ✨
-                      f"Cambios: {recent_changes:.1f} | "  # ✨
+                      f"Throughput: {recent_throughput:.2f} | "
+                      f"Cambios: {recent_changes:.1f} | "
                       f"ε: {self.agent.epsilon:.3f}")
 
             # Guardar modelo periódicamente
@@ -114,10 +113,10 @@ class TrafficSimulator:
         }
 
     def evaluate(self, num_episodes=10, max_steps=1000):
-        """Evalúa el agente entrenado sin exploración."""
+        # Evalúa el agente entrenado sin exploración.
         episode_wait_times = []
         episode_vehicle_counts = []
-        episode_throughput = []  # ✨ Nueva
+        episode_throughput = []
 
         print("\n=== Evaluación del Agente ===")
 
@@ -134,7 +133,7 @@ class TrafficSimulator:
                 env.apply_action(action)
                 moved = env.step()
 
-                total_moved += moved  # ✨
+                total_moved += moved
                 total_wait_time += env.get_waiting_vehicles_count()
                 total_vehicles += len(env.vehicles)
 
@@ -142,35 +141,35 @@ class TrafficSimulator:
 
             avg_wait_time = total_wait_time / max_steps
             avg_vehicles = total_vehicles / max_steps
-            avg_throughput = total_moved / max_steps  # ✨
+            avg_throughput = total_moved / max_steps
 
             episode_wait_times.append(avg_wait_time)
             episode_vehicle_counts.append(avg_vehicles)
-            episode_throughput.append(avg_throughput)  # ✨
+            episode_throughput.append(avg_throughput)
 
             print(f"Episodio {episode + 1}: "
                   f"Espera = {avg_wait_time:.2f}, "
                   f"Vehículos = {avg_vehicles:.2f}, "
-                  f"Throughput = {avg_throughput:.2f}")  # ✨
+                  f"Throughput = {avg_throughput:.2f}")
 
         results = {
             'avg_wait_time': np.mean(episode_wait_times),
             'std_wait_time': np.std(episode_wait_times),
             'avg_vehicles': np.mean(episode_vehicle_counts),
             'std_vehicles': np.std(episode_vehicle_counts),
-            'avg_throughput': np.mean(episode_throughput),  # ✨
-            'std_throughput': np.std(episode_throughput)  # ✨
+            'avg_throughput': np.mean(episode_throughput),
+            'std_throughput': np.std(episode_throughput)
         }
 
         print(f"\n=== Resultados Finales ===")
         print(f"Tiempo de espera: {results['avg_wait_time']:.2f} ± {results['std_wait_time']:.2f}")
         print(f"Vehículos promedio: {results['avg_vehicles']:.2f} ± {results['std_vehicles']:.2f}")
-        print(f"Throughput: {results['avg_throughput']:.2f} ± {results['std_throughput']:.2f}")  # ✨
+        print(f"Throughput: {results['avg_throughput']:.2f} ± {results['std_throughput']:.2f}")
 
         return results
 
     def compare_with_baseline(self, num_episodes=10, max_steps=1000):
-        """Compara el agente entrenado con un semáforo de tiempo fijo."""
+        # Compara el agente entrenado con un semáforo de tiempo fijo.
         print("\n=== Comparación: Agente vs. Baseline ===")
 
         # Evaluar agente entrenado
@@ -180,12 +179,12 @@ class TrafficSimulator:
         # Evaluar baseline (cambio fijo cada 30 steps)
         print("\n--- Semáforo Tiempo Fijo (30s) ---")
         baseline_wait_times = []
-        baseline_throughput = []  # ✨
+        baseline_throughput = []
 
         for episode in range(num_episodes):
             env = self.reset_environment()
             total_wait_time = 0
-            total_moved = 0  # ✨
+            total_moved = 0
 
             for step in range(max_steps):
                 if step % 30 == 0 and step > 0:
@@ -194,38 +193,38 @@ class TrafficSimulator:
                     env.apply_action(0)  # Mantener
 
                 moved = env.step()
-                total_moved += moved  # ✨
+                total_moved += moved
                 total_wait_time += env.get_waiting_vehicles_count()
 
             avg_wait_time = total_wait_time / max_steps
-            avg_throughput = total_moved / max_steps  # ✨
+            avg_throughput = total_moved / max_steps
             baseline_wait_times.append(avg_wait_time)
-            baseline_throughput.append(avg_throughput)  # ✨
+            baseline_throughput.append(avg_throughput)
 
             print(f"Episodio {episode + 1}: "
                   f"Espera = {avg_wait_time:.2f}, "
-                  f"Throughput = {avg_throughput:.2f}")  # ✨
+                  f"Throughput = {avg_throughput:.2f}")
 
         baseline_avg_wait = np.mean(baseline_wait_times)
         baseline_std_wait = np.std(baseline_wait_times)
-        baseline_avg_throughput = np.mean(baseline_throughput)  # ✨
+        baseline_avg_throughput = np.mean(baseline_throughput)
 
         print(f"\nBaseline - Espera: {baseline_avg_wait:.2f} ± {baseline_std_wait:.2f}")
-        print(f"Baseline - Throughput: {baseline_avg_throughput:.2f}")  # ✨
+        print(f"Baseline - Throughput: {baseline_avg_throughput:.2f}")
 
         # Comparación
         wait_improvement = ((baseline_avg_wait - agent_results['avg_wait_time']) / baseline_avg_wait) * 100
         throughput_improvement = ((agent_results[
-                                       'avg_throughput'] - baseline_avg_throughput) / baseline_avg_throughput) * 100  # ✨
+                                       'avg_throughput'] - baseline_avg_throughput) / baseline_avg_throughput) * 100
 
         print(f"\n=== Resultados ===")
         print(f"Mejora en espera: {wait_improvement:.2f}%")
-        print(f"Mejora en throughput: {throughput_improvement:.2f}%")  # ✨
+        print(f"Mejora en throughput: {throughput_improvement:.2f}%")
 
         return agent_results, baseline_avg_wait, baseline_std_wait
 
     def plot_training_progress(self, metrics):
-        """Grafica el progreso del entrenamiento con todas las métricas."""
+        # Grafica el progreso del entrenamiento con todas las métricas.
         window = 20
 
         # ========================================
@@ -300,7 +299,6 @@ class TrafficSimulator:
 
 
 def main():
-    """Función principal de entrenamiento."""
     print("=== Entrenamiento de Agente Q-Learning ===\n")
 
     simulator = TrafficSimulator(grid_size=40)
